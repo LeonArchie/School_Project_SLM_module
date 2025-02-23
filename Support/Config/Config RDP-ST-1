@@ -1,0 +1,95 @@
+Конфигурация нетплан
+	nano /etc/netplan/50-cloud-init.yaml
+		network:
+			ethernets:
+				eth0:
+					dhcp4: false
+					addresses: [ 192.168.3.2/24 ]
+					nameservers:
+						addresses: [ 192.168.8.2, 192.168.8.3 ]
+					routes:
+						- to: default
+							via: 192.168.3.1
+							on-link: true
+		version: 2
+
+Проверка конфигурации
+	netplan generate
+	netplan apply
+
+Установить таймзону
+	timedatectl set-timezone Europe/Moscow
+
+акомитить все pool
+Добавить
+server 192.168.8.15 iburst
+Проверка 
+		systemctl restart chrony 
+		chronyc sources
+		
+		wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_7.0-2+ubuntu22.04_all.deb
+		echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+		apt install gnupg2
+		curl -fsS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg2 --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+		apt update
+		apt install zabbix-agent2
+		systemctl enable zabbix-agent2
+		systemctl start zabbix-agent2
+		apt install zabbix-sql-scripts
+		apt install postgresql-17
+		locale-gen ru_RU.UTF-8
+		systemctl restart postgresql
+		nano /etc/postgres/17/main/postgresql.conf
+		Разкомитить listen_addresses = '*' не завить потом прописать конкретные адреса через пробел
+		systemctl restart postgresql
+		ss -tunlp | grep 5432 выводим открыте порты 
+		nano /etc/postgres/17/main/pg_hba.conf
+		Прописываем временный конфиг для настроек 
+		host	all	all	all	md5
+		Не забыть поправить при переходе в ПРОМ
+		sudo -u postgres createuser --pwprompt zabbix
+		password
+		Чекап пользователя
+		sudo -u postgres psql
+		\du
+		Создаем админ пользователя
+		sudo -u postgres createuser --pwprompt PsDbAdmin
+		password
+		Чекап пользователя
+		sudo -u postgres psql
+		\du
+		ALTER USER PsDbAdmin WITH SUPERUSER;
+		sudo -u postgres createdb -O zabbix zabbix
+		zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
+				
+Конфигурируем SSH		
+	nano /etc/ssh/sshd_config
+Закомитить Include
+		Port 56314
+		
+		SyslogFacility AUTH
+		LogLevel INFO
+		
+		LoginGraceTime 30
+		PermitRootLogin no
+		MaxAuthTries 3
+		MaxSessions 2
+		
+		PubkeyAuthetication yes
+		
+		PasswordAuthentication no
+		PermitEmptyPassword no
+		
+sudo -u postgres createuser --pwprompt ZabbixServerNode1
+password
+sudo -u postgres createuser --pwprompt ZabbixServerNode2
+password
+sudo -u postgres createuser --pwprompt ZabbixWebNode1
+password
+sudo -u postgres createuser --pwprompt ZabbixWebNode2
+password
+
+GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixServerNode1";
+GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixServerNode2";
+GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixWebNode1";
+GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixWebNode2";	
