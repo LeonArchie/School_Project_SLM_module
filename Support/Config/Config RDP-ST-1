@@ -92,4 +92,8 @@ password
 GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixServerNode1";
 GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixServerNode2";
 GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixWebNode1";
-GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixWebNode2";	
+GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixWebNode2";
+
+
+
+GRANT ALL PRIVILEGES ON DATABASE "zabbix" to "ZabbixWebNode2";
